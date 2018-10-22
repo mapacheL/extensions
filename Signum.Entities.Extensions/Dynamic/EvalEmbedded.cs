@@ -46,6 +46,7 @@ namespace Signum.Entities.Dynamic
 
         [SqlDbType(Size = int.MaxValue)]
         string script;
+        [StringLengthValidator(MultiLine =true)]
         public string Script
         {
             get { return script; }
