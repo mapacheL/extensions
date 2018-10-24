@@ -45,6 +45,7 @@ namespace Signum.Engine.Files
             sb.AssertDefined(ReflectionTools.GetMethodInfo(() => FilePathEmbeddedLogic.Start(null)));
         }
 
+
         public static void Start(SchemaBuilder sb)
         {
             if (sb.NotDefined(MethodInfo.GetCurrentMethod()))
@@ -57,6 +58,8 @@ namespace Signum.Engine.Files
                 {
                     if(efp.BinaryFile != null) //First time
                     {
+                        efp.FileName = efp.FileName.Replace("%","").Trim();
+
                         efp.SaveFile();
                     }
                 };
