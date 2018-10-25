@@ -14,7 +14,20 @@ export const DynamicBaseType = new EnumType<DynamicBaseType>("DynamicBaseType");
 export type DynamicBaseType =
     "Entity" |
     "MixinEntity" |
-    "EmbeddedEntity";
+    "EmbeddedEntity" |
+    "ModelEntity";
+
+export const DynamicCSSOverrideEntity = new Type<DynamicCSSOverrideEntity>("DynamicCSSOverride");
+export interface DynamicCSSOverrideEntity extends Entities.Entity {
+    Type: "DynamicCSSOverride";
+    name?: string | null;
+    script?: string | null;
+}
+
+export module DynamicCSSOverrideOperation {
+    export const Save : Entities.ExecuteSymbol<DynamicCSSOverrideEntity> = registerSymbol("Operation", "DynamicCSSOverrideOperation.Save");
+    export const Delete : Entities.DeleteSymbol<DynamicCSSOverrideEntity> = registerSymbol("Operation", "DynamicCSSOverrideOperation.Delete");
+}
 
 export const DynamicExpressionEntity = new Type<DynamicExpressionEntity>("DynamicExpression");
 export interface DynamicExpressionEntity extends Entities.Entity {

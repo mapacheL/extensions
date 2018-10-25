@@ -523,6 +523,7 @@ export interface EntityBaseNode extends LineBaseNode, ContainerNode {
 export interface EntityLineNode extends EntityBaseNode {
     kind: "EntityLine",
     autoComplete?: ExpressionOrValue<boolean>;
+    itemHtmlAttributes?: HtmlAttributesExpression;
 }
 
 NodeUtils.register<EntityLineNode>({
@@ -534,8 +535,8 @@ NodeUtils.register<EntityLineNode>({
     validate: (dn, ctx) => NodeUtils.validateEntityBase(dn, ctx),
     renderTreeNode: NodeUtils.treeNodeKindField,
     renderCode: (node, cc) => cc.elementCode("EntityLine", cc.getEntityBasePropsEx(node, { showAutoComplete: true })),
-    render: (dn, ctx) => (<EntityLine {...NodeUtils.getEntityBaseProps(dn, ctx, { showAutoComplete: true }) } />),
-    renderDesigner: dn => NodeUtils.designEntityBase(dn, { showAutoComplete: true }),
+    render: (dn, ctx) => (<EntityLine {...NodeUtils.getEntityBaseProps(dn, ctx, { showAutoComplete: true, isEntityLine: true })} />),
+    renderDesigner: dn => NodeUtils.designEntityBase(dn, { showAutoComplete: true, isEntityLine: true }),
 });
 
 
@@ -622,7 +623,7 @@ NodeUtils.register<FileLineNode>({
         dragAndDropMessage={NodeUtils.evaluateAndValidate(parentCtx, dn.node, n => n.dragAndDropMessage, NodeUtils.isStringOrNull)}
         fileType={toFileTypeSymbol(NodeUtils.evaluateAndValidate(parentCtx, dn.node, n => n.fileType, NodeUtils.isStringOrNull))}
         accept={NodeUtils.evaluateAndValidate(parentCtx, dn.node, n => n.accept, NodeUtils.isStringOrNull)}
-        maxSizeInBytes={NodeUtils.evaluateAndValidate(parentCtx, dn.node, n => n.maxSizeInBytes, NodeUtils.isStringOrNull)}
+        maxSizeInBytes={NodeUtils.evaluateAndValidate(parentCtx, dn.node, n => n.maxSizeInBytes, NodeUtils.isNumberOrNull)}
         onChange={NodeUtils.evaluateAndValidate(parentCtx, dn.node, n => n.onChange, NodeUtils.isFunctionOrNull)}
     />),
     renderDesigner: dn => {
@@ -695,7 +696,7 @@ NodeUtils.register<FileImageLineNode>({
         dragAndDropMessage={NodeUtils.evaluateAndValidate(parentCtx, dn.node, n => n.dragAndDropMessage, NodeUtils.isStringOrNull)}
         fileType={toFileTypeSymbol(NodeUtils.evaluateAndValidate(parentCtx, dn.node, n => n.fileType, NodeUtils.isStringOrNull))}
         accept={NodeUtils.evaluateAndValidate(parentCtx, dn.node, n => n.accept, NodeUtils.isStringOrNull)}
-        maxSizeInBytes={NodeUtils.evaluateAndValidate(parentCtx, dn.node, n => n.maxSizeInBytes, NodeUtils.isStringOrNull)}
+        maxSizeInBytes={NodeUtils.evaluateAndValidate(parentCtx, dn.node, n => n.maxSizeInBytes, NodeUtils.isNumberOrNull)}
         onChange={NodeUtils.evaluateAndValidate(parentCtx, dn.node, n => n.onChange, NodeUtils.isFunctionOrNull)}
     />),
     renderDesigner: dn => {
@@ -924,6 +925,7 @@ NodeUtils.register<EntityTabRepeaterNode>({
 export interface EntityTableNode extends EntityListBaseNode {
     kind: "EntityTable",
     avoidFieldSet?: ExpressionOrValue<boolean>;
+    scrollable?: ExpressionOrValue<boolean>;
     maxResultsHeight?: Expression<number | string>;
 }
 
@@ -940,6 +942,7 @@ NodeUtils.register<EntityTableNode>({
     renderCode: (node, cc) => cc.elementCode("EntityTable", {
         ...cc.getEntityBasePropsEx(node, { findMany: true, showMove: true, avoidGetComponent: true }),
         avoidFieldSet: node.avoidFieldSet,
+        scrollable: node.scrollable,
         maxResultsHeight: node.maxResultsHeight,
         columns: ({ __code__: "EntityTable.typedColumns<YourEntityHere>(" + cc.stringifyObject(node.children.map(col => ({ __code__: NodeUtils.renderCode(col as EntityTableColumnNode, cc) }))) + ")" })
     }),
@@ -947,13 +950,15 @@ NodeUtils.register<EntityTableNode>({
         columns={dn.node.children.length == 0 ? undefined : dn.node.children.filter(c => NodeUtils.validate(dn.createChild(c), ctx) == null).map(col => NodeUtils.render(dn.createChild(col as EntityTableColumnNode), ctx) as any)}
         {...NodeUtils.getEntityBaseProps(dn, ctx, { findMany: true, showMove: true, avoidGetComponent: true }) }
         avoidFieldSet={NodeUtils.evaluateAndValidate(ctx, dn.node, n => n.avoidFieldSet, NodeUtils.isBooleanOrNull)}
+        scrollable={NodeUtils.evaluateAndValidate(ctx, dn.node, n => n.scrollable, NodeUtils.isBooleanOrNull)}
         maxResultsHeight={NodeUtils.evaluateAndValidate(ctx, dn.node, n => n.maxResultsHeight, NodeUtils.isNumberOrStringOrNull)}
     />),
 
     renderDesigner: dn =>
         <div>
             {NodeUtils.designEntityBase(dn, { findMany: true, showMove: true })}
-            <ExpressionOrValueComponent dn={dn} binding={Binding.create(dn.node, n => n.avoidFieldSet)} type="boolean" defaultValue={false}  />
+            <ExpressionOrValueComponent dn={dn} binding={Binding.create(dn.node, n => n.avoidFieldSet)} type="boolean" defaultValue={false} />
+            <ExpressionOrValueComponent dn={dn} binding={Binding.create(dn.node, n => n.scrollable)} type="boolean" defaultValue={false} />
             <ExpressionOrValueComponent dn={dn} binding={Binding.create(dn.node, n => n.maxResultsHeight)} type={null} defaultValue={null}  />
         </div>
 });
@@ -1012,6 +1017,7 @@ export interface SearchControlNode extends BaseNode {
     showExcelMenu?: ExpressionOrValue<boolean>;
     showUserQuery?: ExpressionOrValue<boolean>;
     showWordReport?: ExpressionOrValue<boolean>;
+    hideFullScreenButton?: ExpressionOrValue<boolean>;
     allowChangeColumns?: ExpressionOrValue<boolean>;
     create?: ExpressionOrValue<boolean>;
     onCreate?: Expression<() => void>;
@@ -1031,6 +1037,7 @@ NodeUtils.register<SearchControlNode>({
     renderCode: (node, cc) => cc.elementCode("SearchControl", {
         findOptions: node.findOptions,
         searchOnLoad: node.searchOnLoad,
+        showHeader: node.showHeader,
         showFilters: node.showFilters,
         showFilterButton: node.showFilterButton,
         showFooter: node.showFooter,
@@ -1040,6 +1047,7 @@ NodeUtils.register<SearchControlNode>({
         showExcelMenu: node.showExcelMenu,
         showUserQuery: node.showUserQuery,
         showWordReport: node.showWordReport, 
+        hideFullScreenButton: node.hideFullScreenButton,
         allowChangeColumns: node.allowChangeColumns,
         create: node.create,
         onCreate: node.onCreate,
@@ -1053,6 +1061,7 @@ NodeUtils.register<SearchControlNode>({
         findOptions={toFindOptions(ctx, dn.node.findOptions!)}
         getViewPromise={NodeUtils.toStringFunction(NodeUtils.evaluateAndValidate(ctx, dn.node, f => f.viewName, NodeUtils.isStringOrNull))}
         searchOnLoad={NodeUtils.evaluateAndValidate(ctx, dn.node, f => f.searchOnLoad, NodeUtils.isBooleanOrNull)}
+        showHeader={NodeUtils.evaluateAndValidate(ctx, dn.node, f => f.showHeader, NodeUtils.isBooleanOrNull)}
         showFilters={NodeUtils.evaluateAndValidate(ctx, dn.node, f => f.showFilters, NodeUtils.isBooleanOrNull)}
         showFilterButton={NodeUtils.evaluateAndValidate(ctx, dn.node, f => f.showFilterButton, NodeUtils.isBooleanOrNull)}
         showFooter={NodeUtils.evaluateAndValidate(ctx, dn.node, f => f.showFooter, NodeUtils.isBooleanOrNull)}
@@ -1064,6 +1073,7 @@ NodeUtils.register<SearchControlNode>({
             showUserQuery: NodeUtils.evaluateAndValidate(ctx, dn.node, f => f.showUserQuery, NodeUtils.isBooleanOrNull),
             showWordReport: NodeUtils.evaluateAndValidate(ctx, dn.node, f => f.showWordReport, NodeUtils.isBooleanOrNull),
         }}
+        hideFullScreenButton={NodeUtils.evaluateAndValidate(ctx, dn.node, f => f.hideFullScreenButton, NodeUtils.isBooleanOrNull)}
         allowChangeColumns={NodeUtils.evaluateAndValidate(ctx, dn.node, f => f.allowChangeColumns, NodeUtils.isBooleanOrNull)}
         create={NodeUtils.evaluateAndValidate(ctx, dn.node, f => f.create, NodeUtils.isBooleanOrNull)}
         onCreate={NodeUtils.evaluateAndValidate(ctx, dn.node, f => f.onCreate, NodeUtils.isFunctionOrNull)}
@@ -1090,6 +1100,7 @@ NodeUtils.register<SearchControlNode>({
         <ExpressionOrValueComponent dn={dn} binding={Binding.create(dn.node, f => f.showExcelMenu)} type="boolean" defaultValue={null} />
         <ExpressionOrValueComponent dn={dn} binding={Binding.create(dn.node, f => f.showUserQuery)} type="boolean" defaultValue={null} />
         <ExpressionOrValueComponent dn={dn} binding={Binding.create(dn.node, f => f.showWordReport)} type="boolean" defaultValue={null} />
+        <ExpressionOrValueComponent dn={dn} binding={Binding.create(dn.node, f => f.hideFullScreenButton)} type="boolean" defaultValue={null} />
         <ExpressionOrValueComponent dn={dn} binding={Binding.create(dn.node, f => f.allowChangeColumns)} type="boolean" defaultValue={null} />
         <ExpressionOrValueComponent dn={dn} binding={Binding.create(dn.node, f => f.create)} type="boolean" defaultValue={null} />
         <ExpressionOrValueComponent dn={dn} binding={Binding.create(dn.node, f => f.onCreate)} type={null} defaultValue={null} exampleExpression={`() => 
