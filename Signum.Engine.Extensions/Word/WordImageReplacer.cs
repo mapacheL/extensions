@@ -17,10 +17,11 @@ namespace Signum.Engine.Word
     {
         public static bool AvoidAdaptSize = false; //Jpeg compression creates different images in TeamCity
 
-        /// <param name="title">Word Image -> Right Click -> Format Picture -> Alt Text -> Title </param>
-        public static void ReplaceImage(WordprocessingDocument doc, string title, Bitmap bitmap, string newImagePartId, bool adaptSize = false, ImagePartType imagePartType = ImagePartType.Png)
+        /// <param name="title">Word Image -> Right Click -> Format Picture -> Alt Text -> Title</param>
+        /// <param name="useDescription">Use Alternative text instead of Title (Image -> Right Click -> Size -> Alternative text)</param>
+        public static void ReplaceImage(WordprocessingDocument doc, string title, Bitmap bitmap, string newImagePartId, bool adaptSize = false, ImagePartType imagePartType = ImagePartType.Png, bool useDescription = false)
         {
-            Blip blip = FindBlip(doc, title);
+            Blip blip = FindBlip(doc, title, useDescription);
 
             if (adaptSize && !AvoidAdaptSize)
             {
@@ -38,9 +39,9 @@ namespace Signum.Engine.Word
             blip.Embed = doc.MainDocumentPart.GetIdOfPart(img);
         }
 
-        public static void RemoveImage(WordprocessingDocument doc, string title, bool removeFullDrawing)
+        public static void RemoveImage(WordprocessingDocument doc, string title, bool removeFullDrawing, bool useDescription = false)
         {
-            Blip blip = FindBlip(doc, title);
+            Blip blip = FindBlip(doc, title, useDescription);
             doc.MainDocumentPart.DeletePart(blip.Embed);
 
             if (removeFullDrawing)
@@ -79,13 +80,15 @@ namespace Signum.Engine.Word
             throw new InvalidOperationException("Unexpected {0}".FormatWith(imagePartType));
         }
 
-        static Blip FindBlip(WordprocessingDocument doc, string alternativeTitle)
+        static Blip FindBlip(WordprocessingDocument doc, string alternativeTitle, bool useDescription)
         {
             var drawing = doc.MainDocumentPart.Document.Descendants().OfType<Drawing>().SingleEx(r =>
             {
                 var prop = r.Descendants<DocProperties>().SingleOrDefault();
 
-                return prop != null && prop.Title == alternativeTitle;
+                return useDescription 
+                    ? prop != null && prop.Description != null && prop.Description == alternativeTitle
+                    : prop != null && prop.Title == alternativeTitle;
             });
 
             return drawing.Descendants<Blip>().SingleEx();
