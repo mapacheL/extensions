@@ -32,7 +32,12 @@ namespace Signum.Engine.Word
                 bitmap = ImageResizer.Resize(bitmap, oldBmp.Width, oldBmp.Height);
             }
 
-            doc.MainDocumentPart.DeletePart(blip.Embed);
+            try
+            {
+                doc.MainDocumentPart.DeletePart(blip.Embed);
+            }
+            catch { }
+
 
             ImagePart img = CreateImagePart(doc, bitmap, newImagePartId, imagePartType);
 
@@ -86,7 +91,7 @@ namespace Signum.Engine.Word
             {
                 var prop = r.Descendants<DocProperties>().SingleOrDefault();
 
-                return useDescription 
+                return useDescription
                     ? prop != null && prop.Description != null && prop.Description == alternativeTitle
                     : prop != null && prop.Title == alternativeTitle;
             });
