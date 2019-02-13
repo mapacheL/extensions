@@ -324,7 +324,8 @@ namespace Signum.Engine.Word
             using (CurrentEntityConverter.SetCurrentEntity(context.Entity))
             {
                 var chartRequest = UserChartLogic.ToChartRequest(userChart);
-                ResultTable result = ChartLogic.ExecuteChartAsync(chartRequest, CancellationToken.None).Result;
+                //ResultTable result = ChartLogic.ExecuteChartAsync(chartRequest, CancellationToken.None).Result;
+                ResultTable result = ChartLogic.ExecuteChart(chartRequest);
                 var tokens = chartRequest.Columns.Where(a => a.Token != null).ToList();
 
                 if (chartRequest.GroupResults && tokens.Count(a => a.IsGroupKey.Value) == 2 && tokens.Count(a => !a.IsGroupKey.Value) == 1)
